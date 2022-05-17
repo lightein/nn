@@ -5,43 +5,62 @@ import shutil
 import tempfile
 import time
 
-import mmcv
 import torch
 import torch.distributed as dist
-from mmcv.image import tensor2imgs
+
+import mmcv
 from mmcv.runner import get_dist_info
 
 
-def single_gpu_test(model, data_loader):
+def save_eval_results(results, save_path):
+    mmcv.mkdir_or_exist(save_path)
+    for result in results:
+        filename = result['filename']
+        mmcv.dump(result, osp.join(save_path, f'{filename}.pkl'))
+
+
+def single_gpu_test(model, data_loader, save_result=False, save_path=None):
+    """Test model with a single gpu.
+
+    This method tests model with a single gpu and displays test progress bar.
+
+    Args:
+        model (nn.Module): Model to be tested.
+        data_loader (nn.Dataloader): Pytorch data loader.
+
+    Returns:
+        list: The prediction results.
+    """
     model.eval()
     results = []
     dataset = data_loader.dataset
     prog_bar = mmcv.ProgressBar(len(dataset))
-    for i, data in enumerate(data_loader):
+    for data in data_loader:
         with torch.no_grad():
             result = model(data, return_loss=False)
-
         results.extend(result)
 
-        # get batch size
-        for _, v in data.items():
-            if isinstance(v, torch.Tensor):
-                batch_size = v.size(0)
-                break
-
+        # Assume result has the same length of batch_size
+        # refer to https://github.com/open-mmlab/mmcv/issues/985
+        batch_size = len(result)
         for _ in range(batch_size):
             prog_bar.update()
+
+    if save_result:
+        assert save_path is None
+        save_eval_results(results, save_path)
+
     return results
 
 
-def multi_gpu_test(model, data_loader, tmpdir=None, gpu_collect=False):
+def multi_gpu_test(model, data_loader, tmpdir=None, gpu_collect=False, save_result=False, save_path=None):
     """Test model with multiple gpus.
 
     This method tests model with multiple gpus and collects the results
-    under two different modes: gpu and cpu modes. By setting 'gpu_collect=True'
-    it encodes results to gpu tensors and use gpu communication for results
-    collection. On cpu mode it saves the results on different gpus to 'tmpdir'
-    and collects them by the rank 0 worker.
+    under two different modes: gpu and cpu modes. By setting
+    ``gpu_collect=True``, it encodes results to gpu tensors and use gpu
+    communication for results collection. On cpu mode it saves the results on
+    different gpus to ``tmpdir`` and collects them by the rank 0 worker.
 
     Args:
         model (nn.Module): Model to be tested.
@@ -62,17 +81,15 @@ def multi_gpu_test(model, data_loader, tmpdir=None, gpu_collect=False):
     time.sleep(2)  # This line can prevent deadlock problem in some cases.
     for i, data in enumerate(data_loader):
         with torch.no_grad():
-            result = model(return_loss=False, rescale=True, **data)
-
-        results.append(result)
+            result = model(data, return_loss=False)
+        results.extend(result)
 
         if rank == 0:
-            # get batch size
-            for _, v in data.items():
-                if isinstance(v, torch.Tensor):
-                    batch_size = v.size(0)
-                    break
-            for _ in range(batch_size * world_size):
+            batch_size = len(result)
+            batch_size_all = batch_size * world_size
+            if batch_size_all + prog_bar.completed > len(dataset):
+                batch_size_all = len(dataset) - prog_bar.completed
+            for _ in range(batch_size_all):
                 prog_bar.update()
 
     # collect results from all ranks
@@ -80,6 +97,10 @@ def multi_gpu_test(model, data_loader, tmpdir=None, gpu_collect=False):
         results = collect_results_gpu(results, len(dataset))
     else:
         results = collect_results_cpu(results, len(dataset), tmpdir)
+
+    if save_result:
+        assert save_path is None
+        save_eval_results(results, save_path)
     return results
 
 
@@ -114,7 +135,11 @@ def collect_results_cpu(result_part, size, tmpdir=None):
         part_list = []
         for i in range(world_size):
             part_file = osp.join(tmpdir, f'part_{i}.pkl')
-            part_list.append(mmcv.load(part_file))
+            part_result = mmcv.load(part_file)
+            # When data is severely insufficient, an empty part_result
+            # on a certain gpu could makes the overall outputs empty.
+            if part_result:
+                part_list.append(part_result)
         # sort the results
         ordered_results = []
         for res in zip(*part_list):
@@ -148,8 +173,11 @@ def collect_results_gpu(result_part, size):
     if rank == 0:
         part_list = []
         for recv, shape in zip(part_recv_list, shape_list):
-            part_list.append(
-                pickle.loads(recv[:shape[0]].cpu().numpy().tobytes()))
+            part_result = pickle.loads(recv[:shape[0]].cpu().numpy().tobytes())
+            # When data is severely insufficient, an empty part_result
+            # on a certain gpu could makes the overall outputs empty.
+            if part_result:
+                part_list.append(part_result)
         # sort the results
         ordered_results = []
         for res in zip(*part_list):
