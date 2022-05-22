@@ -12,14 +12,22 @@ import mmcv
 from mmcv.runner import get_dist_info
 
 
-def save_eval_results(results, save_path):
-    mmcv.mkdir_or_exist(save_path)
-    for result in results:
-        filename = result['filename']
-        mmcv.dump(result, osp.join(save_path, f'{filename}.pkl'))
+def save_eval_results(results, save_dir):
+    mmcv.mkdir_or_exist(save_dir)
+
+    for idx, result in enumerate(results):
+
+        if 'filename' in result:
+            filename = result['filename']
+        elif 'img_metas' in result and 'filename' in result['img_metas']:
+            filename = result['img_metas']['filename']
+        else:
+            filename = f'{idx:06d}'
+
+        mmcv.dump(result, osp.join(save_dir, f'{filename}.pkl'))
 
 
-def single_gpu_test(model, data_loader, save_result=False, save_path=None):
+def single_gpu_test(model, data_loader, save_results=False, save_dir=None):
     """Test model with a single gpu.
 
     This method tests model with a single gpu and displays test progress bar.
@@ -46,14 +54,14 @@ def single_gpu_test(model, data_loader, save_result=False, save_path=None):
         for _ in range(batch_size):
             prog_bar.update()
 
-    if save_result:
-        assert save_path is None
-        save_eval_results(results, save_path)
+    if save_results:
+        assert save_dir is not None
+        save_eval_results(results, save_dir)
 
     return results
 
 
-def multi_gpu_test(model, data_loader, tmpdir=None, gpu_collect=False, save_result=False, save_path=None):
+def multi_gpu_test(model, data_loader, tmpdir=None, gpu_collect=False, save_results=False, save_dir=None):
     """Test model with multiple gpus.
 
     This method tests model with multiple gpus and collects the results
@@ -98,9 +106,9 @@ def multi_gpu_test(model, data_loader, tmpdir=None, gpu_collect=False, save_resu
     else:
         results = collect_results_cpu(results, len(dataset), tmpdir)
 
-    if save_result:
-        assert save_path is None
-        save_eval_results(results, save_path)
+    if save_results:
+        assert save_dir is None
+        save_eval_results(results, save_dir)
     return results
 
 

@@ -8,6 +8,7 @@ import warnings
 
 import sys
 sys.path.extend(['../../mmcv-master', '../../mm'])
+import mm
 
 import mmcv
 import torch
@@ -169,6 +170,11 @@ def main():
         _, world_size = get_dist_info()
         cfg.gpu_ids = range(world_size)
 
+    if not args.no_validate:
+        validate = True
+        if cfg.get('evaluation', None) is None:
+            validate = False
+
     # create work_dir
     mmcv.mkdir_or_exist(osp.abspath(cfg.work_dir))
     # dump config
@@ -215,7 +221,7 @@ def main():
         # cfg.checkpoint_config.meta = dict(dnn_version=get_git_hash()[:7])
         cfg.checkpoint_config.meta = dict(dnn_version=0)
 
-    train_model(model, datasets, cfg, distributed=distributed, validate=(not args.no_validate), timestamp=timestamp, meta=meta)
+    train_model(model, datasets, cfg, distributed=distributed, validate=validate, timestamp=timestamp, meta=meta)
 
 
 if __name__ == '__main__':

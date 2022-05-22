@@ -23,11 +23,11 @@ def _calc_dynamic_intervals(start_interval, dynamic_interval_list):
 
 class EvalHook(BaseEvalHook):
 
-    def __init__(self, *args, dynamic_intervals=None, save_result=False, **kwargs):
+    def __init__(self, *args, dynamic_intervals=None, save_results=False, **kwargs):
         super(EvalHook, self).__init__(*args, **kwargs)
 
         self.use_dynamic_intervals = dynamic_intervals is not None
-        self.save_result = save_result
+        self.save_results = save_results
         if self.use_dynamic_intervals:
             self.dynamic_milestones, self.dynamic_intervals = \
                 _calc_dynamic_intervals(self.interval, dynamic_intervals)
@@ -59,8 +59,8 @@ class EvalHook(BaseEvalHook):
         else:
             current = f'iter_{runner.iter + 1}'
 
-        save_path = osp.join(self.out_dir, current)
-        results = single_gpu_test(runner.model, self.dataloader, save_result=self.save_result, save_path=save_path)
+        save_dir = osp.join(self.out_dir, current)
+        results = single_gpu_test(runner.model, self.dataloader, save_results=self.save_results, save_dir=save_dir)
         runner.log_buffer.output['eval_iter_num'] = len(self.dataloader)
         key_score = self.evaluate(runner, results)
         # the key_score may be `None` so it needs to skip the action to save
@@ -74,11 +74,11 @@ class EvalHook(BaseEvalHook):
 # inherit EvalHook but BaseDistEvalHook.
 class DistEvalHook(BaseDistEvalHook):
 
-    def __init__(self, *args, dynamic_intervals=None, save_result=False, **kwargs):
+    def __init__(self, *args, dynamic_intervals=None, save_results=False, **kwargs):
         super(DistEvalHook, self).__init__(*args, **kwargs)
 
         self.use_dynamic_intervals = dynamic_intervals is not None
-        self.save_result = save_result
+        self.save_results = save_results
         if self.use_dynamic_intervals:
             self.dynamic_milestones, self.dynamic_intervals = \
                 _calc_dynamic_intervals(self.interval, dynamic_intervals)
@@ -127,12 +127,12 @@ class DistEvalHook(BaseDistEvalHook):
         else:
             current = f'iter_{runner.iter + 1}'
 
-        save_path = osp.join(self.out_dir, current)
+        save_dir = osp.join(self.out_dir, current)
         results = multi_gpu_test(
             runner.model,
             self.dataloader,
             tmpdir=tmpdir,
-            gpu_collect=self.gpu_collect, save_result=self.save_result, save_path=save_path)
+            gpu_collect=self.gpu_collect, save_results=self.save_results, save_dir=save_dir)
         if runner.rank == 0:
             print('\n')
             runner.log_buffer.output['eval_iter_num'] = len(self.dataloader)

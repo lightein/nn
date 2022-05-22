@@ -3,6 +3,9 @@ from abc import ABCMeta
 
 class BasePipeline(metaclass=ABCMeta):
 
+    def __init__(self, pipeline_cfg):
+        self.pipeline_cfg = pipeline_cfg
+
     def __call__(self, results):
         """Call function.
         Args:

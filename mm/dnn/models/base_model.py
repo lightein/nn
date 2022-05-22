@@ -140,7 +140,7 @@ class BaseModel(BaseModule, metaclass=ABCMeta):
             k = loss_name + '_val'
             log_vars_[k] = loss_value
 
-        outputs = dict(loss=loss, log_vars=log_vars, num_samples=len(data['img_metas']))
+        outputs = dict(loss=loss, log_vars=log_vars_, num_samples=len(data['img_metas']))
 
         return outputs
 
