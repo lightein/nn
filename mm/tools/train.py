@@ -28,7 +28,7 @@ from dnn.utils.setup_env import setup_multi_processes
 
 def parse_args():
     parser = argparse.ArgumentParser(description='Train a dnn model')
-    parser.add_argument('--config', default='../configs/model_sch_data_simple_eg.py', help='train config file path')
+    parser.add_argument('config', help='train config file path')
     parser.add_argument('--work-dir', help='the dir to save logs and models')
     parser.add_argument(
         '--resume-from', help='the checkpoint file to resume from')
