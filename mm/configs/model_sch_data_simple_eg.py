@@ -3,10 +3,11 @@ work_dir = f'../experiments/{exp_name}'
 
 # model settings
 model = dict(
-    type='',
-    net=dict(type=''),
+    type='',  # MODELS register
+    # MODELS register's Args
+    net=dict(type=''),  # NETS register
     loss_cfg=dict(
-        loss=dict()
+        loss=dict(type='')  # LOSS or LOSSES register
     ),
     # model training and testing settings
     train_cfg=dict(),
@@ -18,44 +19,38 @@ model = dict(
 
 # dataset settings
 train_pipeline = [
-    dict(type=''),
-    dict(type='Collect', keys=['', ''], meta_keys=[''])
+    dict(type=''),  # PIPELINES register
+    dict(type='Collect', keys=['', ''], meta_keys=[''])  # PIPELINES register
 ]
 
 val_pipeline = [
-    dict(type=''),
-    dict(type='Collect', keys=['', ''], meta_keys=['']),
+    dict(type=''),  # PIPELINES register
+    dict(type='Collect', keys=['', ''], meta_keys=['']),  # PIPELINES register
 ]
 
-# test_pipline = []
+test_pipline = []
 
 data = dict(
-    workers_per_gpu=1,
-    train_dataloader=dict(samples_per_gpu=1, persistent_workers=False),
-    val_dataloader=dict(samples_per_gpu=1, persistent_workers=False),
-    train=dict(
+    train_dataloader=dict(samples_per_gpu=1, workers_per_gpu=1, persistent_workers=False),
+    val_dataloader=dict(samples_per_gpu=1, workers_per_gpu=1, persistent_workers=False),
+    test_dataloader=dict(),
+    train=dict(  # DATASETS register
         type='',
-        data_root='',
-        datalist_file='../datalist/datalist_train.txt',
         pipeline=train_pipeline),
-    val=dict(
+    val=dict(  # DATASETS register
         type='',
-        data_root='',
-        datalist_file='../datalist/datalist_val.txt',
         pipeline=val_pipeline),
-    test=dict(
+    test=dict(  # DATASETS register
         type='',
-        data_root='',
-        datalist_file='../datalist/datalist_test.txt',
         pipeline=val_pipeline)
 )
 
 # eval metrics
-evaluation = dict(interval=1)
+evaluation = dict(interval=1)  # eval hook
 
 # optimizer
-optimizer_config = dict(grad_clip=None)
-optimizers = dict(type='Adam', lr=1e-4, betas=(0.9, 0.99))
+optimizer_config = dict(grad_clip=None)  # optimizer hook
+optimizers = dict(type='Adam', lr=1e-4, betas=(0.9, 0.99))  # optimizers register
 
 # learning policy
 lr_config = dict(policy='Step',

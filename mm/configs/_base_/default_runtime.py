@@ -15,7 +15,10 @@ log_level = 'INFO'
 load_from = None
 resume_from = None
 # auto_resume = True
+# cudnn_benchmark = True
 workflow = [('train', 1)]
+# the only difference between [('train', 1), ('val', 1)] and [('train', 1)]
+# is that the runner will calculate losses on validation set after each training epoch.
 # workflow = [('train', 1), ('val', 1)]
 
 # disable opencv multithreading to avoid system being overloaded
