@@ -19,10 +19,6 @@ def tensor2img(tensor, out_type=np.uint8, min_max=(0, 1)):
         2. 3D Tensor of shape (3/1 x H x W) and 2D Tensor of shape (H x W):
             Directly change to numpy array.
 
-    Note that the image channel in input tensors should be RGB order. This
-    function will convert it to cv2 convention, i.e., (H x W x C) with BGR
-    order.
-
     Args:
         tensor (Tensor | list[Tensor]): Input tensors.
         out_type (numpy type): Output types. If ``np.uint8``, transform outputs
@@ -56,10 +52,10 @@ def tensor2img(tensor, out_type=np.uint8, min_max=(0, 1)):
             img_np = make_grid(
                 _tensor, nrow=int(math.sqrt(_tensor.size(0))),
                 normalize=False).numpy()
-            img_np = np.transpose(img_np[[2, 1, 0], :, :], (1, 2, 0))
+            img_np = np.transpose(img_np, (1, 2, 0))
         elif n_dim == 3:
             img_np = _tensor.numpy()
-            img_np = np.transpose(img_np[[2, 1, 0], :, :], (1, 2, 0))
+            img_np = np.transpose(img_np, (1, 2, 0))
         elif n_dim == 2:
             img_np = _tensor.numpy()
         else:
@@ -72,3 +68,31 @@ def tensor2img(tensor, out_type=np.uint8, min_max=(0, 1)):
         result.append(img_np)
     result = result[0] if len(result) == 1 else result
     return result
+
+
+def img2tensor(imgs, float32=True):
+    """Numpy array to tensor.
+    1. 3D ndarray of shape (H x W x C) change to (C x H x W)
+    2. other shape directly change to Tensor
+
+    Args:
+        imgs (list[ndarray] | ndarray): Input images.
+        float32 (bool): Whether to change to float32.
+    Returns:
+        list[tensor] | tensor: Tensor images. If returned results only have
+            one element, just return tensor.
+    """
+
+    def _totensor(img, float32):
+        if img.ndim == 3:
+            img = torch.from_numpy(img.transpose(2, 0, 1))
+        else:
+            img = torch.from_numpy(img)
+        if float32:
+            img = img.float()
+        return img
+
+    if isinstance(imgs, list):
+        return [_totensor(img, float32) for img in imgs]
+    else:
+        return _totensor(imgs, float32)
