@@ -21,7 +21,7 @@ class SRVGGModel(BaseModel):
         self.init_weights()
 
     def forward_dummy(self, data):
-        self.generator(**data)
+        self.generator(*data)
 
     def forward_train(self, data):
         gt = data['gt_img']

@@ -7,7 +7,7 @@ import time
 import warnings
 
 import sys
-sys.path.extend(['../../mmcv-master', '../../mm'])
+sys.path.extend(['../../mmcv-master', '../../mm', '../../../nn'])
 import mm
 
 import mmcv
