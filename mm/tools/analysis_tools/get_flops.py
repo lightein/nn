@@ -36,17 +36,17 @@ def parse_args():
 
 def input_constructor(input_shape):
     input_list = []
+
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
     if isinstance(input_shape[0], tuple):
         for shape in input_shape:
-            input_data = torch.rand(shape)
-            if torch.cuda.is_available():
-                input_data = input_data.cuda()
+            input_data = torch.rand(shape, device=device)
             input_list.append(input_data)
     else:
-        input_data = torch.rand(input_shape)
-        if torch.cuda.is_available():
-            input_data = input_data.cuda()
+        input_data = torch.rand(input_shape, device=device)
         input_list.append(input_data)
+
     # data is args of 'forward_dummy'
     input = dict(data=tuple(input_list))
     return input
