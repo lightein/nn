@@ -106,9 +106,10 @@ def multi_gpu_test(model, data_loader, tmpdir=None, gpu_collect=False, save_resu
     else:
         results = collect_results_cpu(results, len(dataset), tmpdir)
 
-    if save_results:
-        assert save_dir is None
-        save_eval_results(results, save_dir)
+    if rank == 0:
+        if save_results:
+            assert save_dir is not None
+            save_eval_results(results, save_dir)
     return results
 
 
