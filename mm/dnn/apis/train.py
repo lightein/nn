@@ -10,6 +10,7 @@ from mmcv.runner import (DistSamplerSeedHook, EpochBasedRunner,
                          build_runner, get_dist_info)
 from ..core.optimizer.builder import build_optimizers
 from ..core.evaluation.eval_hooks import DistEvalHook, EvalHook
+from ..core.hook import *
 from ..datasets.builder import build_dataloader, build_dataset
 from ..utils.util_distribution import build_ddp, build_dp
 from ..utils.compat_config import compat_cfg
@@ -190,7 +191,7 @@ def train_model(model,
         optimizer_config = cfg.optimizer_config
 
     # using optimizer in model
-    if isinstance(optimizer, dict) and len(optimizer) > 1:
+    if isinstance(optimizer, dict) and len(optimizer) > 1 and 'type' not in cfg.optimizer_config:
         optimizer_config = None
 
     # register hooks
