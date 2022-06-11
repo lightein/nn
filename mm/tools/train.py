@@ -58,7 +58,7 @@ def parse_args():
         default=0,
         help='id of gpu to use '
         '(only applicable to non-distributed training)')
-    parser.add_argument('--seed', type=int, default=None, help='random seed')
+    parser.add_argument('--seed', type=int, default=0, help='random seed')
     parser.add_argument(
         '--diff-seed',
         action='store_true',
@@ -200,11 +200,16 @@ def main():
 
     cfg.device = get_device()
     # set random seeds
+
+    if args.seed == 0:
+        deterministic = True
+    else:
+        deterministic = args.deterministic
+
     seed = init_random_seed(args.seed, device=cfg.device)
     seed = seed + dist.get_rank() if args.diff_seed else seed
-    logger.info(f'Set random seed to {seed}, '
-                f'deterministic: {args.deterministic}')
-    set_random_seed(seed, deterministic=args.deterministic)
+    logger.info(f'Set random seed to {seed}, deterministic: {deterministic}')
+    set_random_seed(seed, deterministic=deterministic)
     cfg.seed = seed
     meta['seed'] = seed
     meta['exp_name'] = osp.basename(args.config)
