@@ -19,7 +19,7 @@ except ImportError:
 
 def parse_args():
     parser = argparse.ArgumentParser(description='Train a model')
-    parser.add_argument('config', help='train config file path')
+    parser.add_argument('config', help='model config file path')
     parser.add_argument(
         '--cfg-options',
         nargs='+',

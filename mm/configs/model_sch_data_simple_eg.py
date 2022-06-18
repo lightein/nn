@@ -1,5 +1,5 @@
 exp_name = 'simple_eg'
-work_dir = f'../experiments/{exp_name}'
+work_dir = f'../../experiments/{exp_name}'
 
 # model settings
 model = dict(
@@ -50,6 +50,7 @@ evaluation = dict(interval=1)  # eval hook
 
 # optimizer
 optimizer_config = dict(grad_clip=None)  # optimizer hook
+# optimizer_config = dict(type='OptimizerGradDetHook', grad_clip=None)
 optimizers = dict(type='Adam', lr=1e-4, betas=(0.9, 0.99))  # optimizers register
 
 # learning policy

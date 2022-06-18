@@ -7,8 +7,9 @@ import time
 import warnings
 
 import sys
-sys.path.extend(['../../mmcv-master', '../../mm', '../../../nn'])
-import mm
+sys.path.extend(['..', '../..', '../../mmcv-master'])
+# directory for specific deep learning project
+import projects
 
 import mmcv
 import torch
