@@ -79,10 +79,8 @@ def auto_scale_lr(cfg, distributed, logger):
         logger (logging.Logger): Logger.
     """
     # Get flag from config
-    if ('auto_scale_lr' not in cfg) or \
-            (not cfg.auto_scale_lr.get('enable', False)):
-        logger.info('Automatic scaling of learning rate (LR)'
-                    ' has been disabled.')
+    if ('auto_scale_lr' not in cfg) or (not cfg.auto_scale_lr.get('enable', False)):
+        logger.info('Automatic scaling of learning rate (LR) has been disabled.')
         return
 
     # Get base batch size from config
@@ -100,20 +98,16 @@ def auto_scale_lr(cfg, distributed, logger):
     # calculate the batch size
     samples_per_gpu = cfg.data.train_dataloader.samples_per_gpu
     batch_size = num_gpus * samples_per_gpu
-    logger.info(f'Training with {num_gpus} GPU(s) with {samples_per_gpu} '
-                f'samples per GPU. The total batch size is {batch_size}.')
+    logger.info(f'Training with {num_gpus} GPU(s) with {samples_per_gpu} samples per GPU. The total batch size is {batch_size}.')
 
     if batch_size != base_batch_size:
         # scale LR with
         # [linear scaling rule](https://arxiv.org/abs/1706.02677)
         scaled_lr = (batch_size / base_batch_size) * cfg.optimizer.lr
-        logger.info('LR has been automatically scaled '
-                    f'from {cfg.optimizer.lr} to {scaled_lr}')
+        logger.info('LR has been automatically scaled from {cfg.optimizer.lr} to {scaled_lr}')
         cfg.optimizer.lr = scaled_lr
     else:
-        logger.info('The batch size match the '
-                    f'base batch size: {base_batch_size}, '
-                    f'will not scaling the LR ({cfg.optimizer.lr}).')
+        logger.info('The batch size match the base batch size: {base_batch_size}, will not scaling the LR ({cfg.optimizer.lr}).')
 
 
 def train_model(model,
@@ -130,8 +124,7 @@ def train_model(model,
     # prepare data loaders
     dataset = dataset if isinstance(dataset, (list, tuple)) else [dataset]
 
-    runner_type = 'EpochBasedRunner' if 'runner' not in cfg else cfg.runner[
-        'type']
+    runner_type = 'EpochBasedRunner' if 'runner' not in cfg else cfg.runner['type']
 
     train_dataloader_default_args = dict(
         samples_per_gpu=2,
@@ -229,8 +222,7 @@ def train_model(model,
         eval_hook = DistEvalHook if distributed else EvalHook
         # In this PR (https://github.com/open-mmlab/mmcv/pull/1193), the
         # priority of IterTimerHook has been modified from 'NORMAL' to 'LOW'.
-        runner.register_hook(
-            eval_hook(val_dataloader, **eval_cfg), priority='LOW')
+        runner.register_hook(eval_hook(val_dataloader, **eval_cfg), priority='LOW')
 
     resume_from = None
     if cfg.resume_from is None and cfg.get('auto_resume'):

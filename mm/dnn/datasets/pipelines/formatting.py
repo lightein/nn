@@ -120,16 +120,14 @@ class Transpose:
             results (dict): Result dict contains the data to transpose.
 
         Returns:
-            dict: The result dict contains the data transposed to \
-                ``self.order``.
+            dict: The result dict contains the data transposed to ``self.order``.
         """
         for key in self.keys:
             results[key] = results[key].transpose(self.order)
         return results
 
     def __repr__(self):
-        return self.__class__.__name__ + \
-               f'(keys={self.keys}, order={self.order})'
+        return self.__class__.__name__ + f'(keys={self.keys}, order={self.order})'
 
 
 @PIPELINES.register_module()
@@ -144,9 +142,7 @@ class ToDataContainer:
             dict(key='gt_labels'))``.
     """
 
-    def __init__(self,
-                 fields=(dict(key='img', stack=True), dict(key='gt_bboxes'),
-                         dict(key='gt_labels'))):
+    def __init__(self, fields=(dict(key='img', stack=True), dict(key='gt_bboxes'), dict(key='gt_labels'))):
         self.fields = fields
 
     def __call__(self, results):
@@ -186,9 +182,7 @@ class Collect:
             ``mmcv.DataContainer`` and collected in ``data[img_metas]``.
     """
 
-    def __init__(self,
-                 keys,
-                 meta_keys=None):
+    def __init__(self, keys, meta_keys=None):
         self.keys = keys
         self.meta_keys = meta_keys
 
@@ -216,8 +210,7 @@ class Collect:
         return data
 
     def __repr__(self):
-        return self.__class__.__name__ + \
-               f'(keys={self.keys}, meta_keys={self.meta_keys})'
+        return self.__class__.__name__ + f'(keys={self.keys}, meta_keys={self.meta_keys})'
 
 
 @PIPELINES.register_module()

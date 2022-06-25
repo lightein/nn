@@ -46,14 +46,20 @@ data = dict(
     val_dataloader=dict(samples_per_gpu=2, workers_per_gpu=1, persistent_workers=False),
     test_dataloader=dict(),
     train=dict(  # DATASETS register
+        # type='RepeatDataset',
+        # dataset=dict(
         type='SRGTDataset',
         data_root='D:/xxd/dataset',
-        datalist_file='../datalists/datalist_div2k_train.txt',
-        pipeline=train_pipeline),
+        datalist_file='../../datalists/datalist_div2k_train.txt',
+        # datalist_file=['../../datalists/datalist_div2k_train.txt', '../../datalists/datalist_div2k_val.txt']
+        pipeline=train_pipeline
+        # ),
+        # times=2,
+    ),
     val=dict(  # DATASETS register
         type='SRGTDataset',
         data_root='D:/xxd/dataset',
-        datalist_file='../datalists/datalist_div2k_val.txt',
+        datalist_file='../../datalists/datalist_div2k_val.txt',
         pipeline=val_pipeline),
     test=dict()
 )

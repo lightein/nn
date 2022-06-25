@@ -119,16 +119,10 @@ def main():
         cfg.merge_from_dict(args.cfg_options)
 
     if args.auto_scale_lr:
-        if 'auto_scale_lr' in cfg and \
-                'enable' in cfg.auto_scale_lr and \
-                'base_batch_size' in cfg.auto_scale_lr:
+        if 'auto_scale_lr' in cfg and 'enable' in cfg.auto_scale_lr and 'base_batch_size' in cfg.auto_scale_lr:
             cfg.auto_scale_lr.enable = True
         else:
-            warnings.warn('Can not find "auto_scale_lr" or '
-                          '"auto_scale_lr.enable" or '
-                          '"auto_scale_lr.base_batch_size" in your'
-                          ' configuration file. Please update all the '
-                          'configuration files to mmdet >= 2.24.1.')
+            warnings.warn('Can not find "auto_scale_lr" or "auto_scale_lr.enable" or "auto_scale_lr.base_batch_size" in your configuration file.')
 
     # set multi-process settings
     setup_multi_processes(cfg)
@@ -149,15 +143,10 @@ def main():
     cfg.auto_resume = args.auto_resume
     if args.gpus is not None:
         cfg.gpu_ids = range(1)
-        warnings.warn('`--gpus` is deprecated because we only support '
-                      'single GPU mode in non-distributed training. '
-                      'Use `gpus=1` now.')
+        warnings.warn('`--gpus` is deprecated because we only support single GPU mode in non-distributed training. Use `gpus=1` now.')
     if args.gpu_ids is not None:
         cfg.gpu_ids = args.gpu_ids[0:1]
-        warnings.warn('`--gpu-ids` is deprecated, please use `--gpu-id`. '
-                      'Because we only support single GPU mode in '
-                      'non-distributed training. Use the first GPU '
-                      'in `gpu_ids` now.')
+        warnings.warn('`--gpu-ids` is deprecated, please use `--gpu-id`. Because we only support single GPU mode in non-distributed training. Use the first GPU in `gpu_ids` now.')
     if args.gpus is None and args.gpu_ids is None:
         cfg.gpu_ids = [args.gpu_id]
 

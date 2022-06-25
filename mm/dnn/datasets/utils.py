@@ -17,8 +17,7 @@ def scan_folder(path, img_extensions):
     if isinstance(path, (str, Path)):
         path = str(path)
     else:
-        raise TypeError("'path' must be a str or a Path object, "
-                        f'but received {type(path)}.')
+        raise TypeError(f"'path' must be a str or a Path object, but received {type(path)}.")
 
     images = list(scandir(path, suffix=img_extensions, recursive=True))
     images = [osp.join(path, v) for v in images]
