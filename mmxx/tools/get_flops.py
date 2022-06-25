@@ -6,8 +6,8 @@ import torch
 from mmcv import Config, DictAction
 
 import sys
-sys.path.extend(['../../mmcv-master', '../../mm', '../../../nn'])
-import mm
+sys.path.extend(['../../mmcv-master', '..', '../..'])
+import projects
 
 from dnn.models.builder import build_model
 
