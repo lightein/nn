@@ -160,10 +160,10 @@ def main():
         _, world_size = get_dist_info()
         cfg.gpu_ids = range(world_size)
 
-    if not args.no_validate:
+    if args.no_validate or cfg.get('evaluation', None) is None:
+        validate = False
+    else:
         validate = True
-        if cfg.get('evaluation', None) is None:
-            validate = False
 
     # create work_dir
     mmcv.mkdir_or_exist(osp.abspath(cfg.work_dir))
