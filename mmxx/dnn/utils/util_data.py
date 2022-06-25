@@ -12,6 +12,12 @@ def plt_show(data, fig_name='fig', vmin=None, vmax=None):
     plt.savefig(f'{fig_name}.png')
 
 
+def plt_plot(data, fig_name='fig'):
+    plt.figure(fig_name)
+    plt.plot(data)
+    plt.savefig(f'{fig_name}.png')
+
+
 def pkl_dump(data, pkl_file='data.pkl'):
     with open(pkl_file, 'wb') as f:
         pickle.dump(data, f)
