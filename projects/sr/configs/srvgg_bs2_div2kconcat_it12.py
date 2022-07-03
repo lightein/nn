@@ -13,3 +13,6 @@ data = dict(
         datalist_file=['../../datalists/datalist_div2k_train.txt', '../../datalists/datalist_div2k_val.txt']
     ),
 )
+
+evaluation = dict(out_dir=f'{work_dir}/eval')  # eval hook
+checkpoint_config = dict(out_dir=f'{work_dir}/ckpt')

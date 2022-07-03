@@ -1,5 +1,5 @@
 exp_name = 'srvgg'
-work_dir = f'../../experiments/{exp_name}'
+work_dir = f'../../experiments/sr/{exp_name}'
 
 
 upscale = 2

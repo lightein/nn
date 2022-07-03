@@ -1,4 +1,4 @@
 from .sr_pipline import *
-from .sr_gt_dataset import *
-from .srvggnet import *
-from .srvgg_model import *
+from .sr_dataset import *
+from .sr_net import *
+from .sr_model import *

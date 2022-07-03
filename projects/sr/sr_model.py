@@ -9,7 +9,6 @@ from dnn.core.utils import tensor2img, set_requires_grad
 
 @MODELS.register_module()
 class SRVGGModel(BaseModel):
-
     def __init__(self, net, loss_cfg=None, train_cfg=None, test_cfg=None, init_cfg=None):
         super(SRVGGModel, self).__init__(init_cfg)
         self.generator = build_net(net)
