@@ -34,18 +34,22 @@ def cvt_nchw(data, shape_fmt):
     idx_n = shape_fmt.find('N')
     if idx_n == -1:
         idx_n = 0
+        shape_fmt = shape_fmt[:idx_n] + 'N' + shape_fmt[idx_n:]
         data = np.expand_dims(data, 0)
     idx_c = shape_fmt.find('C')
     if idx_c == -1:
         idx_c = 1
+        shape_fmt = shape_fmt[:idx_c] + 'C' + shape_fmt[idx_c:]
         data = np.expand_dims(data, 1)
     idx_h = shape_fmt.find('H')
     if idx_h == -1:
         idx_h = 2
+        shape_fmt = shape_fmt[:idx_h] + 'H' + shape_fmt[idx_h:]
         data = np.expand_dims(data, 2)
     idx_w = shape_fmt.find('W')
     if idx_w == -1:
         idx_w = 3
+        shape_fmt = shape_fmt[:idx_w] + 'W' + shape_fmt[idx_w:]
         data = np.expand_dims(data, 3)
     data = np.transpose(data, (idx_n, idx_c, idx_h, idx_w))
     return data
