@@ -2,10 +2,6 @@ _base_ = [
     './srvgg_bs2_div2k_it12.py',
 ]
 
-exp_name = 'srvgg_div2kconcat'
-work_dir = f'../../experiments/{exp_name}'
-
-
 data = dict(
     train=dict(  # DATASETS register
         type='SRGTDataset',
@@ -14,5 +10,8 @@ data = dict(
     ),
 )
 
-evaluation = dict(out_dir=f'{work_dir}/eval')  # eval hook
+exp_name = '{{fileBasenameNoExtension}}'
+work_dir = f'../../experiments/{exp_name}'
 checkpoint_config = dict(out_dir=f'{work_dir}/ckpt')
+
+evaluation = dict(out_dir=f'{work_dir}/eval')  # eval hook
