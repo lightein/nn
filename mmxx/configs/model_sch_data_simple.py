@@ -1,6 +1,3 @@
-exp_name = 'simple_eg'
-work_dir = f'../../experiments/{exp_name}'
-
 # model settings
 model = dict(
     type='',  # MODELS register
@@ -45,9 +42,7 @@ data = dict(
         pipeline=val_pipeline)
 )
 
-# eval metrics
-evaluation = dict(interval=1)  # eval hook
-
+# training schedule
 # optimizer
 optimizer_config = dict(grad_clip=None)  # optimizer hook
 # optimizer_config = dict(type='OptimizerGradDetHook', grad_clip=None)
@@ -66,6 +61,10 @@ runner = dict(type='EpochBasedRunner', max_epochs=12)
 # runner = dict(type='IterBasedRunner', max_iters=12)
 
 # runtime setting
+exp_name = 'simple_test'
+exp_name = '{{fileBasenameNoExtension}}'
+work_dir = f'../../experiments/{exp_name}'
+
 checkpoint_config = dict(interval=1)
 
 log_config = dict(interval=2,
@@ -80,5 +79,8 @@ log_level = 'INFO'
 load_from = None
 
 workflow = [('train', 1)]
+
+# eval metrics
+evaluation = dict(interval=1)  # eval hook
 
 

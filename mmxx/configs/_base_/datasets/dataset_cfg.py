@@ -22,6 +22,6 @@ data = dict(
         pipeline=val_pipeline),
     test=dict(
         type='',
-        pipeline=val_pipeline)
+        pipeline=test_pipeline)
 )
 evaluation = dict(interval=1)

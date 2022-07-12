@@ -14,5 +14,12 @@ lr_config = dict(
     step=[5, 10],
     gamma=0.5
 )
+
+# # Default setting for scaling LR automatically
+# #   - `enable` means enable scaling LR automatically
+# #       or not by default.
+# #   - `base_batch_size` = (8 GPUs) x (2 samples per GPU).
+# auto_scale_lr = dict(enable=False, base_batch_size=16)
+
 runner = dict(type='EpochBasedRunner', max_epochs=12)
 # runner = dict(type='IterBasedRunner', max_iters=12)
