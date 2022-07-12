@@ -6,11 +6,6 @@ import os.path as osp
 import time
 import warnings
 
-import sys
-sys.path.extend(['..', '../..', '../../mmcv-master'])
-# directory for specific deep learning project
-import projects
-
 import mmcv
 import torch
 import torch.distributed as dist
