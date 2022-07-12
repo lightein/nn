@@ -62,7 +62,7 @@ runner = dict(type='EpochBasedRunner', max_epochs=12)
 
 # runtime setting
 exp_name = 'simple_test'
-exp_name = '{{fileBasenameNoExtension}}'
+# exp_name = '{{fileBasenameNoExtension}}'
 work_dir = f'../../experiments/{exp_name}'
 
 checkpoint_config = dict(interval=1)

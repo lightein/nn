@@ -10,3 +10,8 @@ _base_ = [
 custom_imports = dict(
     imports=[''],
     allow_failed_imports=False)
+
+# runtime setting
+exp_name = 'base_test'
+# exp_name = '{{fileBasenameNoExtension}}'
+work_dir = f'../../experiments/{exp_name}'
