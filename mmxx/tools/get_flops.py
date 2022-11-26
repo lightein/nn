@@ -5,10 +5,6 @@ import numpy as np
 import torch
 from mmcv import Config, DictAction
 
-import sys
-sys.path.extend(['../../mmcv-master', '..', '../..'])
-import projects
-
 from dnn.models.builder import build_model
 
 try:
@@ -48,8 +44,8 @@ def input_constructor(input_shape):
         input_list.append(input_data)
 
     # data is args of 'forward_dummy'
-    input = dict(data=tuple(input_list))
-    return input
+    input_tensor = dict(data=tuple(input_list))
+    return input_tensor
 
 
 def main():
