@@ -1,6 +1,10 @@
 # model settings
+custom_imports = dict(
+    imports=['projects.sr'],
+    allow_failed_imports=False)
+
 model = dict(
-    type='SRVGGModel',  # MODELS register
+    type='SRModel',  # MODELS register
     # MODELS register's Args
     net=dict(type='SRVGGNetCompact',
              num_in_ch=3,
@@ -18,6 +22,3 @@ model = dict(
     init_cfg=dict(type='Xavier')
 )
 input_shape = (1, 3, 1080, 1920)
-custom_imports = dict(
-    imports=['projects.sr'],
-    allow_failed_imports=False)

@@ -7,9 +7,9 @@ from dnn.core.utils import tensor2img, set_requires_grad
 
 
 @MODELS.register_module()
-class SRVGGModel(BaseModel):
+class SRModel(BaseModel):
     def __init__(self, net, loss_cfg=None, train_cfg=None, test_cfg=None, init_cfg=None):
-        super(SRVGGModel, self).__init__(init_cfg)
+        super(SRModel, self).__init__(init_cfg)
         self.generator = build_net(net)
         initialize(self.generator, init_cfg)
         self.train_cfg = train_cfg
@@ -63,22 +63,22 @@ class SRVGGModel(BaseModel):
 
 
 @MODELS.register_module()
-class SRVGGGanModel(BaseModel):
+class SRGanModel(BaseModel):
     def __init__(self,
                  net,
                  loss_cfg=None,
                  train_cfg=None,
                  test_cfg=None,
                  init_cfg=None):
-        super(SRVGGGanModel, self).__init__(init_cfg)
+        super(SRGanModel, self).__init__(init_cfg)
         self.generator = build_net(net['g'])
-        initialize(self.generator, init_cfg)
+        initialize(self.generator, init_cfg['g'])
+        self.discriminator = build_net(net['d'])
+        initialize(self.discriminator, init_cfg['d'])
         self.train_cfg = train_cfg
         self.test_cfg = test_cfg
         self.loss_cfg = loss_cfg
         self.loss_fn = build_losses(loss_cfg)
-        self.discriminator = build_net(net['d'])
-        initialize(self.discriminator, dict(type='Xavier'))
 
         self.disc_steps = 1 if self.train_cfg is None else self.train_cfg.get('disc_steps', 1)
         self.disc_init_steps = (0 if self.train_cfg is None else self.train_cfg.get('disc_init_steps', 0))
@@ -93,8 +93,8 @@ class SRVGGGanModel(BaseModel):
 
     def forward_train(self, data, optimizer):
 
-        lq = data['lq']
-        gt = data['gt']
+        lq = data['lq_img']
+        gt = data['gt_img']
 
         # generator
         fake_g_output = self.generator(lq)
@@ -153,8 +153,8 @@ class SRVGGGanModel(BaseModel):
         return outputs
 
     def forward_test(self, data):
-        lq = data['lq']
-        gt = data['gt']
+        lq = data['lq_img']
+        gt = data['gt_img']
         out = self.generator(lq)
         # define results list for test.py
         results = []
