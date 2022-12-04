@@ -5,10 +5,10 @@ from collections import OrderedDict
 
 
 def ext_state_dict():
-    exp_name = ''
-    model_path = f'../../../experiments/dns/{exp_name}/ckpt/{exp_name}/iter_1.pth'
-    revise_keys = [(r'^sr\.', '')]
-    save_keys = 'sr'
+    exp_name = 'srvgggan_bs2_div2k_it12'
+    model_path = f'../../../experiments/sr/{exp_name}/ckpt/{exp_name}/iter_1.pth'
+    revise_keys = [(r'^generator\.', '')]
+    save_keys = 'generator'
     save_dir = os.path.dirname(model_path)
     save_name = os.path.basename(model_path)[:-4]
     checkpoint = torch.load(model_path)
