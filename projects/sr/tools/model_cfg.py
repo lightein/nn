@@ -18,3 +18,6 @@ model = dict(
     init_cfg=dict(type='Xavier')
 )
 input_shape = (1, 3, 1080, 1920)
+custom_imports = dict(
+    imports=['projects.sr'],
+    allow_failed_imports=False)
