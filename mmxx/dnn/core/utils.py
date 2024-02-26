@@ -22,10 +22,10 @@ def set_requires_grad(nets, requires_grad=False):
                 param.requires_grad = requires_grad
 
 
-def tensor2img(tensor, out_type=np.uint8, min_max=(0, 1)):
+def tensor2img(tensor, out_type=np.uint8, min_max=(0, None)):
     """Convert torch Tensors into image numpy arrays.
 
-    After clamping to (min, max), image values will be normalized to [0, 1].
+    After clamping to (min, max), image values will be normalized to [0, None].
 
     For different tensor shapes, this function will have different behaviors:
 
@@ -39,7 +39,7 @@ def tensor2img(tensor, out_type=np.uint8, min_max=(0, 1)):
         tensor (Tensor | list[Tensor]): Input tensors.
         out_type (numpy type): Output types. If ``np.uint8``, transform outputs
             to uint8 type with range [0, 255]; otherwise, float type with
-            range [0, 1]. Default: ``np.uint8``.
+            range [0, None]. Default: ``np.uint8``.
         min_max (tuple): min and max values for clamp.
 
     Returns:
@@ -59,7 +59,8 @@ def tensor2img(tensor, out_type=np.uint8, min_max=(0, 1)):
         # 2. (n>1, 3/1, h, w) -> (n>1, 3/1, h, w)
         _tensor = _tensor.squeeze(0).squeeze(0)
         _tensor = _tensor.float().detach().cpu().clamp_(*min_max)
-        _tensor = (_tensor - min_max[0]) / (min_max[1] - min_max[0])
+        if None not in min_max:
+            _tensor = (_tensor - min_max[0]) / (min_max[1] - min_max[0])
         n_dim = _tensor.dim()
         if n_dim == 4:
             img_np = make_grid(_tensor, nrow=int(math.sqrt(_tensor.size(0))), normalize=False).numpy()
@@ -73,7 +74,7 @@ def tensor2img(tensor, out_type=np.uint8, min_max=(0, 1)):
             raise ValueError(f'Only support 4D, 3D or 2D tensor. But received with dimension: {n_dim}')
         if out_type == np.uint8:
             # Unlike MATLAB, numpy.unit8() WILL NOT round by default.
-            img_np = (img_np * 255.0).round()
+            img_np = np.clip((img_np * 255.0).round(), 0, 255)
         img_np = img_np.astype(out_type)
         result.append(img_np)
     result = result[0] if len(result) == 1 else result

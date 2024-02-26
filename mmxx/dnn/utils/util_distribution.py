@@ -2,10 +2,6 @@
 import torch
 from mmcv.parallel import MMDataParallel, MMDistributedDataParallel
 
-dp_factory = {'cuda': MMDataParallel, 'cpu': MMDataParallel}
-
-ddp_factory = {'cuda': MMDistributedDataParallel}
-
 
 def build_dp(model, device='cuda', dim=0, *args, **kwargs):
     """build DataParallel module by device type.
@@ -21,14 +17,15 @@ def build_dp(model, device='cuda', dim=0, *args, **kwargs):
     Returns:
         nn.Module: the model to be parallelized.
     """
+    dp_factory = MMDataParallel
     if device == 'cuda':
         model = model.cuda()
     elif device == 'mlu':
         from mmcv.device.mlu import MLUDataParallel
-        dp_factory['mlu'] = MLUDataParallel
+        dp_factory = MLUDataParallel
         model = model.mlu()
 
-    return dp_factory[device](model, dim=dim, *args, **kwargs)
+    return dp_factory(model, dim=dim, *args, **kwargs)
 
 
 def build_ddp(model, device='cuda', *args, **kwargs):
@@ -51,12 +48,21 @@ def build_ddp(model, device='cuda', *args, **kwargs):
     assert device in ['cuda', 'mlu'], 'Only available for cuda or mlu devices.'
     if device == 'cuda':
         model = model.cuda()
+        module_cnt = 0
+        for name, sub_module in model._modules.items():
+            if not (next(sub_module.parameters(), None) is None and all(not p.requires_grad for p in sub_module.parameters())):
+                module_cnt += 1
+        if module_cnt > 1:
+            from ..core.dist.seperate_distributed import MMSeparateDistributedDataParallel
+            ddp_factory = MMSeparateDistributedDataParallel
+        else:
+            ddp_factory = MMDistributedDataParallel
     elif device == 'mlu':
         from mmcv.device.mlu import MLUDistributedDataParallel
-        ddp_factory['mlu'] = MLUDistributedDataParallel
+        ddp_factory = MLUDistributedDataParallel
         model = model.mlu()
 
-    return ddp_factory[device](model, *args, **kwargs)
+    return ddp_factory(model, *args, **kwargs)
 
 
 def is_mlu_available():

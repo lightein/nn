@@ -1,20 +1,34 @@
 import pickle
 import math
+import os
+import glob
 
 import torch
 import matplotlib.pyplot as plt
 import numpy as np
 
 
+def get_data_list(indir, keyword):
+    data_list = []
+    for root, dirs, files in os.walk(indir):
+        dirs.sort()
+        path_list = glob.glob(os.path.join(root, keyword))
+        if path_list:
+            data_list.append(root)
+    return data_list
+
+
 def plt_show(data, fig_name='fig', vmin=None, vmax=None):
-    plt.figure(fig_name)
+    fig = plt.figure()
+    fig.suptitle(fig_name)
     plt.imshow(data, cmap='jet', vmin=vmin, vmax=vmax)
     plt.colorbar()
     plt.savefig(f'{fig_name}.png')
 
 
 def plt_plot(data, fig_name='fig'):
-    plt.figure(fig_name)
+    fig = plt.figure()
+    fig.suptitle(fig_name)
     plt.plot(data)
     plt.savefig(f'{fig_name}.png')
 

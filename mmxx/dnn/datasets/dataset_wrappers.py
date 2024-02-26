@@ -162,7 +162,7 @@ class ConcatDataset(_ConcatDataset):
                 end_idx = self.cumulative_sizes[dataset_idx + 1]
 
                 results_per_dataset = results[start_idx:end_idx]
-                print_log(f'\nEvaluateing {dataset.ann_file} with {len(results_per_dataset)} images now', logger=logger)
+                print_log(f'\nEvaluateing dataset with {len(results_per_dataset)} images now', logger=logger)
 
                 eval_results_per_dataset = dataset.evaluate(results_per_dataset, logger=logger, **kwargs)
                 dataset_idx += 1

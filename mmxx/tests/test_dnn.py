@@ -1,5 +1,4 @@
 from ..dnn.datasets.builder import build_dataset
-from ..dnn.models.builder import BACKBONES, MODELS
 from ..dnn.models.builder import build_backbone
 
 

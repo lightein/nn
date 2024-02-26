@@ -250,3 +250,129 @@ class Encoding(nn.Module):
         repr_str += f'(Nx{self.channels}xHxW =>Nx{self.num_codes}' \
                     f'x{self.channels})'
         return repr_str
+
+
+class LayerNormFunction(torch.autograd.Function):
+    @staticmethod
+    def forward(ctx, x, weight, bias, eps):
+        ctx.eps = eps
+        N, C, H, W = x.size()
+        mu = x.mean(1, keepdim=True)
+        var = (x - mu).pow(2).mean(1, keepdim=True)
+        y = (x - mu) / (var + eps).sqrt()
+        ctx.save_for_backward(y, var, weight)
+        y = weight.view(1, C, 1, 1) * y + bias.view(1, C, 1, 1)
+        return y
+
+    @staticmethod
+    def backward(ctx, grad_output):
+        eps = ctx.eps
+
+        N, C, H, W = grad_output.size()
+        y, var, weight = ctx.saved_variables
+        g = grad_output * weight.view(1, C, 1, 1)
+        mean_g = g.mean(dim=1, keepdim=True)
+
+        mean_gy = (g * y).mean(dim=1, keepdim=True)
+        gx = 1. / torch.sqrt(var + eps) * (g - y * mean_gy - mean_g)
+        return gx, (grad_output * y).sum(dim=3).sum(dim=2).sum(dim=0), grad_output.sum(dim=3).sum(dim=2).sum(
+            dim=0), None
+
+
+class LayerNorm2d(nn.Module):
+    def __init__(self, channels, eps=1e-6):
+        super(LayerNorm2d, self).__init__()
+        self.register_parameter('weight', nn.Parameter(torch.ones(channels)))
+        self.register_parameter('bias', nn.Parameter(torch.zeros(channels)))
+        self.eps = eps
+
+    def forward(self, x):
+        return LayerNormFunction.apply(x, self.weight, self.bias, self.eps)
+
+
+class SimpleGate(nn.Module):
+    def forward(self, x):
+        x1, x2 = x.chunk(2, dim=1)
+        return x1 * x2
+
+
+@NETS.register_module()
+class VGGStyleDiscriminator(nn.Module):
+    """VGG style discriminator with input size 128 x 128 or 256 x 256.
+
+    It is used to train SRGAN, ESRGAN, and VideoGAN.
+
+    Args:
+        num_in_ch (int): Channel number of inputs. Default: 3.
+        num_feat (int): Channel number of base intermediate features.Default: 64.
+    """
+
+    def __init__(self, num_in_ch, num_feat, input_size=128):
+        super(VGGStyleDiscriminator, self).__init__()
+        self.input_size = input_size
+        assert self.input_size == 128 or self.input_size == 256, (
+            f'input size must be 128 or 256, but received {input_size}')
+
+        self.conv0_0 = nn.Conv2d(num_in_ch, num_feat, 3, 1, 1, bias=True)
+        self.conv0_1 = nn.Conv2d(num_feat, num_feat, 4, 2, 1, bias=False)
+        self.bn0_1 = nn.BatchNorm2d(num_feat, affine=True)
+
+        self.conv1_0 = nn.Conv2d(num_feat, num_feat * 2, 3, 1, 1, bias=False)
+        self.bn1_0 = nn.BatchNorm2d(num_feat * 2, affine=True)
+        self.conv1_1 = nn.Conv2d(num_feat * 2, num_feat * 2, 4, 2, 1, bias=False)
+        self.bn1_1 = nn.BatchNorm2d(num_feat * 2, affine=True)
+
+        self.conv2_0 = nn.Conv2d(num_feat * 2, num_feat * 4, 3, 1, 1, bias=False)
+        self.bn2_0 = nn.BatchNorm2d(num_feat * 4, affine=True)
+        self.conv2_1 = nn.Conv2d(num_feat * 4, num_feat * 4, 4, 2, 1, bias=False)
+        self.bn2_1 = nn.BatchNorm2d(num_feat * 4, affine=True)
+
+        self.conv3_0 = nn.Conv2d(num_feat * 4, num_feat * 8, 3, 1, 1, bias=False)
+        self.bn3_0 = nn.BatchNorm2d(num_feat * 8, affine=True)
+        self.conv3_1 = nn.Conv2d(num_feat * 8, num_feat * 8, 4, 2, 1, bias=False)
+        self.bn3_1 = nn.BatchNorm2d(num_feat * 8, affine=True)
+
+        self.conv4_0 = nn.Conv2d(num_feat * 8, num_feat * 8, 3, 1, 1, bias=False)
+        self.bn4_0 = nn.BatchNorm2d(num_feat * 8, affine=True)
+        self.conv4_1 = nn.Conv2d(num_feat * 8, num_feat * 8, 4, 2, 1, bias=False)
+        self.bn4_1 = nn.BatchNorm2d(num_feat * 8, affine=True)
+
+        if self.input_size == 256:
+            self.conv5_0 = nn.Conv2d(num_feat * 8, num_feat * 8, 3, 1, 1, bias=False)
+            self.bn5_0 = nn.BatchNorm2d(num_feat * 8, affine=True)
+            self.conv5_1 = nn.Conv2d(num_feat * 8, num_feat * 8, 4, 2, 1, bias=False)
+            self.bn5_1 = nn.BatchNorm2d(num_feat * 8, affine=True)
+
+        self.linear1 = nn.Linear(num_feat * 8 * 4 * 4, 100)
+        self.linear2 = nn.Linear(100, 1)
+
+        # activation function
+        self.lrelu = nn.LeakyReLU(negative_slope=0.2, inplace=True)
+
+    def forward(self, x):
+        assert x.size(2) == self.input_size, (f'Input size must be identical to input_size, but received {x.size()}.')
+
+        feat = self.lrelu(self.conv0_0(x))
+        feat = self.lrelu(self.bn0_1(self.conv0_1(feat)))  # output spatial size: /2
+
+        feat = self.lrelu(self.bn1_0(self.conv1_0(feat)))
+        feat = self.lrelu(self.bn1_1(self.conv1_1(feat)))  # output spatial size: /4
+
+        feat = self.lrelu(self.bn2_0(self.conv2_0(feat)))
+        feat = self.lrelu(self.bn2_1(self.conv2_1(feat)))  # output spatial size: /8
+
+        feat = self.lrelu(self.bn3_0(self.conv3_0(feat)))
+        feat = self.lrelu(self.bn3_1(self.conv3_1(feat)))  # output spatial size: /16
+
+        feat = self.lrelu(self.bn4_0(self.conv4_0(feat)))
+        feat = self.lrelu(self.bn4_1(self.conv4_1(feat)))  # output spatial size: /32
+
+        if self.input_size == 256:
+            feat = self.lrelu(self.bn5_0(self.conv5_0(feat)))
+            feat = self.lrelu(self.bn5_1(self.conv5_1(feat)))  # output spatial size: / 64
+
+        # spatial size: (4, 4)
+        feat = feat.view(feat.size(0), -1)
+        feat = self.lrelu(self.linear1(feat))
+        out = self.linear2(feat)
+        return out

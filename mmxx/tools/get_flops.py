@@ -1,5 +1,6 @@
 # Copyright (c) OpenMMLab. All rights reserved.
 import argparse
+import functools
 
 import numpy as np
 import torch
@@ -14,7 +15,7 @@ except ImportError:
 
 
 def parse_args():
-    parser = argparse.ArgumentParser(description='Train a model')
+    parser = argparse.ArgumentParser(description='cal flops of model')
     parser.add_argument('config', help='model config file path')
     parser.add_argument(
         '--cfg-options',
@@ -26,14 +27,19 @@ def parse_args():
         'It also allows nested list/tuple values, e.g. key="[(a,b),(c,d)]" '
         'Note that the quotation marks are necessary and that no white space '
         'is allowed.')
+    parser.add_argument(
+        '--using-gpu',
+        action='store_true',
+        help='loading model to gpu')
     args = parser.parse_args()
     return args
 
 
-def input_constructor(input_shape):
+def input_constructor(input_shape, device=None):
     input_list = []
 
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    if device is None:
+        device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
     if isinstance(input_shape[0], tuple):
         for shape in input_shape:
@@ -62,8 +68,11 @@ def main():
         cfg.model,
         train_cfg=cfg.get('train_cfg'),
         test_cfg=cfg.get('test_cfg'))
-    if torch.cuda.is_available():
-        model.cuda()
+    if torch.cuda.is_available() and args.using_gpu:
+        device = torch.device('cuda')
+    else:
+        device = torch.device('cpu')
+    model.to(device)
     model.eval()
 
     if hasattr(model, 'forward_dummy'):
@@ -73,7 +82,9 @@ def main():
             'FLOPs counter is currently not currently supported with {}'.
             format(model.__class__.__name__))
 
-    flops, params = get_model_complexity_info(model, input_shape, input_constructor=input_constructor)
+    input_constructor_p = functools.partial(input_constructor, device=device)
+
+    flops, params = get_model_complexity_info(model, input_shape, print_per_layer_stat=True, input_constructor=input_constructor_p)
 
     split_line = '=' * 30
 

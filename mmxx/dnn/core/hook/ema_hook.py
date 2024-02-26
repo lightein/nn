@@ -5,6 +5,7 @@ from mmcv.parallel import is_module_wrapper
 from mmcv.runner.hooks import HOOKS, Hook
 
 
+@HOOKS.register_module()
 class BaseEMAHook(Hook):
     """Exponential Moving Average Hook.
 
