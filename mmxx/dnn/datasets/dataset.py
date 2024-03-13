@@ -66,8 +66,12 @@ class DatabaseRegularDataset(BaseDataset):
                         name = base_name
                         for val1, val2 in data_re:
                             name = re.sub(val1, val2, name)
-                        path = os.path.join(data_root, data_name, name)
-                        assert os.path.exists(path), f'{path} not existing...'
+                        if re.search(r'[*?]', name):
+                            path = glob.glob(os.path.join(data_root, data_name, name))
+                            assert len(path), f'no file existing...'
+                        else:
+                            path = os.path.join(data_root, data_name, name)
+                            assert os.path.exists(path), f'{path} not existing...'
                         data_pair[key] = path
                 data_infos.append(data_pair)
         assert len(data_infos), f'no data existing...'
